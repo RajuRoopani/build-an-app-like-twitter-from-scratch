@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Twitter Clone</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#15202b;color:#ffffff}
+    header{background:#15202b;border-bottom:1px solid #38444d;position:sticky;top:0;z-index:100;padding:0 20px}
+    .header-inner{max-width:1000px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:53px}
+    .logo{font-size:24px;font-weight:700;color:#1d9bf0}
+    .nav-actions{display:flex;gap:12px;align-items:center}
+    .btn{padding:7px 18px;border-radius:20px;border:none;cursor:pointer;font-size:14px;font-weight:700;transition:.15s}
+    .btn-primary{background:#1d9bf0;color:#fff}
+    .btn-primary:hover{background:#1a8cd8}
+    .btn-outline{background:transparent;border:1px solid #536471;color:#eff3f4}
+    .btn-outline:hover{background:rgba(239,243,244,.1)}
+    .btn-danger{background:#f4212e;color:#fff}
+    .btn-danger:hover{background:#d91925}
+    main{max-width:1000px;margin:0 auto;padding:0 20px;display:grid;grid-template-columns:1fr 320px;gap:24px}
+    .feed{border-left:1px solid #38444d;border-right:1px solid #38444d}
+    .feed-header{padding:16px;font-size:20px;font-weight:700;border-bottom:1px solid #38444d;position:sticky;top:53px;background:#15202b;z-index:90}
+    .compose-box{padding:12px 16px;border-bottom:1px solid #38444d;display:none}
+    .compose-box.active{display:flex;gap:12px}
+    .compose-avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#1d9bf0,#0066cc);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;flex-shrink:0}
+    .compose-right{flex:1}
+    .compose-textarea{width:100%;background:transparent;border:none;outline:none;color:#eff3f4;font-size:20px;resize:none;min-height:80px;font-family:inherit}
+    .compose-textarea::placeholder{color:#536471}
+    .compose-actions{display:flex;justify-content:flex-end;align-items:center;margin-top:12px;gap:12px}
+    .char-count{font-size:14px;color:#536471}
+    .char-count.warn{color:#ffd400}
+    .char-count.over{color:#f4212e}
+    .tweet-card{padding:12px 16px;border-bottom:1px solid #38444d;display:flex;gap:12px;cursor:pointer;transition:.1s}
+    .tweet-card:hover{background:rgba(255,255,255,.03)}
+    .tweet-avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;flex-shrink:0;background:linear-gradient(135deg,#1d9bf0,#7856ff)}
+    .tweet-body{flex:1;min-width:0}
+    .tweet-header{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+    .tweet-display-name{font-weight:700;font-size:15px}
+    .tweet-username{color:#71767b;font-size:15px}
+    .tweet-time{color:#71767b;font-size:13px}
+    .tweet-text{margin-top:6px;font-size:15px;line-height:1.5;word-break:break-word;color:#eff3f4}
+    .tweet-text .hashtag{color:#1d9bf0}
+    .tweet-text .mention{color:#1d9bf0}
+    .tweet-actions{display:flex;gap:20px;margin-top:12px}
+    .tweet-action-btn{display:flex;align-items:center;gap:6px;background:none;border:none;color:#71767b;cursor:pointer;font-size:13px;padding:4px 6px;border-radius:20px;transition:.15s}
+    .tweet-action-btn:hover{background:rgba(29,155,240,.1);color:#1d9bf0}
+    .tweet-action-btn.liked{color:#f91880}
+    .tweet-action-btn.liked:hover{background:rgba(249,24,128,.1)}
+    .tweet-action-btn.retweeted{color:#00ba7c}
+    .tweet-action-btn.retweeted:hover{background:rgba(0,186,124,.1)}
+    .retweet-indicator{color:#00ba7c;font-size:12px;margin-bottom:4px;display:flex;align-items:center;gap:4px}
+    .sidebar{padding-top:16px}
+    .sidebar-card{background:#1e2732;border-radius:16px;padding:16px;margin-bottom:16px}
+    .sidebar-card h3{font-size:20px;font-weight:700;margin-bottom:16px}
+    .trend-item{padding:10px 0;border-bottom:1px solid #38444d}
+    .trend-item:last-child{border-bottom:none}
+    .trend-label{color:#71767b;font-size:12px}
+    .trend-hashtag{font-weight:700;font-size:15px}
+    .trend-count{color:#71767b;font-size:13px}
+    .who-item{display:flex;align-items:center;gap:10px;padding:8px 0}
+    .who-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#7856ff,#1d9bf0);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;flex-shrink:0}
+    .who-info{flex:1}
+    .who-name{font-weight:700;font-size:14px}
+    .who-handle{color:#71767b;font-size:13px}
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;align-items:center;justify-content:center}
+    .modal-overlay.active{display:flex}
+    .modal{background:#15202b;border-radius:16px;padding:28px;width:400px;max-width:95vw;border:1px solid #38444d}
+    .modal h2{font-size:20px;font-weight:700;text-align:center;margin-bottom:20px}
+    .form-group{margin-bottom:14px}
+    .form-group label{display:block;font-size:12px;font-weight:600;color:#71767b;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+    .form-group input{width:100%;padding:10px 14px;background:#273340;border:1px solid #38444d;border-radius:8px;color:#eff3f4;font-size:14px;outline:none}
+    .form-group input:focus{border-color:#1d9bf0}
+    .form-error{color:#f4212e;font-size:12px;margin-top:6px}
+    .form-toggle{text-align:center;margin-top:12px;font-size:14px;color:#71767b}
+    .form-toggle a{color:#1d9bf0;cursor:pointer;font-weight:600}
+    .tab-bar{display:flex;border-bottom:1px solid #38444d}
+    .tab{flex:1;text-align:center;padding:16px;cursor:pointer;font-weight:600;font-size:15px;color:#71767b;border-bottom:2px solid transparent;transition:.15s}
+    .tab.active{color:#eff3f4;border-bottom-color:#1d9bf0}
+    .notification{position:fixed;bottom:24px;right:24px;background:#1d9bf0;color:#fff;padding:12px 20px;border-radius:8px;font-size:14px;z-index:300;display:none}
+    .notification.show{display:block}
+    .empty-state{text-align:center;padding:60px 20px;color:#71767b}
+    .empty-state .icon{font-size:48px;margin-bottom:16px}
+    .loading{text-align:center;padding:40px;color:#71767b}
+    @media(max-width:700px){main{grid-template-columns:1fr}.sidebar{display:none}}
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">🐦</div>
+    <div id="nav-actions" class="nav-actions">
+      <button class="btn btn-outline" onclick="showAuthModal('login')">Log in</button>
+      <button class="btn btn-primary" onclick="showAuthModal('signup')">Sign up</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="feed">
+    <div class="feed-header">Home</div>
+    <div class="compose-box" id="compose-box">
+      <div class="compose-avatar" id="compose-avatar">?</div>
+      <div class="compose-right">
+        <textarea class="compose-textarea" id="tweet-input" placeholder="What's happening?" maxlength="280" oninput="updateCharCount()"></textarea>
+        <div class="compose-actions">
+          <span class="char-count" id="char-count">280</span>
+          <button class="btn btn-primary" onclick="postTweet()">Tweet</button>
+        </div>
+      </div>
+    </div>
+    <div id="feed-content"><div class="loading">Loading tweets…</div></div>
+  </div>
+  <aside class="sidebar">
+    <div class="sidebar-card" id="trending-card">
+      <h3>Trending</h3>
+      <div id="trending-list"><div style="color:#71767b;font-size:14px">Loading…</div></div>
+    </div>
+    <div class="sidebar-card" id="who-to-follow" style="display:none">
+      <h3>Who to follow</h3>
+      <div id="follow-suggestions"></div>
+    </div>
+  </aside>
+</main>
+
+<!-- Auth modal -->
+<div class="modal-overlay" id="auth-modal">
+  <div class="modal">
+    <h2 id="auth-modal-title">Log in</h2>
+    <div id="login-form">
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="login-username" placeholder="@username"/>
+      </div>
+      <div id="login-error" class="form-error"></div>
+      <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="doLogin()">Log in</button>
+      <div class="form-toggle">No account? <a onclick="switchAuthMode('signup')">Sign up</a></div>
+    </div>
+    <div id="signup-form" style="display:none">
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="signup-username" placeholder="@username"/>
+      </div>
+      <div class="form-group">
+        <label>Display Name</label>
+        <input type="text" id="signup-name" placeholder="Your name"/>
+      </div>
+      <div class="form-group">
+        <label>Bio (optional)</label>
+        <input type="text" id="signup-bio" placeholder="Tell us about yourself"/>
+      </div>
+      <div id="signup-error" class="form-error"></div>
+      <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="doSignup()">Create account</button>
+      <div class="form-toggle">Already have an account? <a onclick="switchAuthMode('login')">Log in</a></div>
+    </div>
+    <div style="text-align:right;margin-top:12px">
+      <button class="btn btn-outline" onclick="closeAuthModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="notification" id="notification"></div>
+
+<script>
+const API = '';
+let currentUser = null;
+let allTweets = [];
+let currentTab = 'for-you';
+
+// ── Utilities ─────────────────────────────────────────────────────────────────
+async function api(method, path, body) {
+  const opts = { method, headers: {'Content-Type':'application/json'} };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(API + path, opts);
+  const json = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(json.detail || JSON.stringify(json));
+  return json;
+}
+
+function notify(msg, ms=3000) {
+  const el = document.getElementById('notification');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), ms);
+}
+
+function timeAgo(ts) {
+  if (!ts) return '';
+  const d = new Date(ts), now = new Date();
+  const s = Math.floor((now - d) / 1000);
+  if (s < 60) return `${s}s`;
+  if (s < 3600) return `${Math.floor(s/60)}m`;
+  if (s < 86400) return `${Math.floor(s/3600)}h`;
+  return d.toLocaleDateString();
+}
+
+function formatText(text) {
+  return text
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/#(\w+)/g,'<span class="hashtag">#$1</span>')
+    .replace(/@(\w+)/g,'<span class="mention">@$1</span>');
+}
+
+function updateCharCount() {
+  const val = document.getElementById('tweet-input').value;
+  const rem = 280 - val.length;
+  const el = document.getElementById('char-count');
+  el.textContent = rem;
+  el.className = 'char-count' + (rem < 20 ? (rem < 0 ? ' over' : ' warn') : '');
+}
+
+// ── Auth modal ────────────────────────────────────────────────────────────────
+function showAuthModal(mode) {
+  document.getElementById('auth-modal').classList.add('active');
+  switchAuthMode(mode);
+}
+function closeAuthModal() {
+  document.getElementById('auth-modal').classList.remove('active');
+}
+function switchAuthMode(mode) {
+  document.getElementById('auth-modal-title').textContent = mode === 'login' ? 'Log in' : 'Sign up';
+  document.getElementById('login-form').style.display = mode === 'login' ? '' : 'none';
+  document.getElementById('signup-form').style.display = mode === 'signup' ? '' : 'none';
+  document.getElementById('login-error').textContent = '';
+  document.getElementById('signup-error').textContent = '';
+}
+
+async function doLogin() {
+  const username = document.getElementById('login-username').value.trim().replace(/^@/,'');
+  document.getElementById('login-error').textContent = '';
+  if (!username) { document.getElementById('login-error').textContent = 'Enter a username.'; return; }
+  try {
+    const user = await api('GET', `/users/${username}`);
+    if (!user.id) throw new Error('Not found');
+    currentUser = user;
+    closeAuthModal();
+    onLogin();
+    notify(`Welcome back, @${user.username}!`);
+  } catch(e) {
+    document.getElementById('login-error').textContent = 'User not found.';
+  }
+}
+
+async function doSignup() {
+  const username = document.getElementById('signup-username').value.trim().replace(/^@/,'');
+  const display_name = document.getElementById('signup-name').value.trim();
+  const bio = document.getElementById('signup-bio').value.trim();
+  document.getElementById('signup-error').textContent = '';
+  if (!username || !display_name) {
+    document.getElementById('signup-error').textContent = 'Username and display name required.'; return;
+  }
+  try {
+    const user = await api('POST', '/users', {username, display_name, bio: bio || null});
+    currentUser = user;
+    closeAuthModal();
+    onLogin();
+    notify(`Welcome to Twitter Clone, @${user.username}!`);
+  } catch(e) {
+    document.getElementById('signup-error').textContent = e.message;
+  }
+}
+
+function onLogin() {
+  document.getElementById('nav-actions').innerHTML = `
+    <span style="font-size:14px;color:#71767b">@${currentUser.username}</span>
+    <button class="btn btn-danger" onclick="doLogout()">Log out</button>
+  `;
+  document.getElementById('compose-box').classList.add('active');
+  const initials = currentUser.display_name[0].toUpperCase();
+  document.getElementById('compose-avatar').textContent = initials;
+  loadFollowSuggestions();
+  loadFeed();
+}
+
+function doLogout() {
+  currentUser = null;
+  document.getElementById('nav-actions').innerHTML = `
+    <button class="btn btn-outline" onclick="showAuthModal('login')">Log in</button>
+    <button class="btn btn-primary" onclick="showAuthModal('signup')">Sign up</button>
+  `;
+  document.getElementById('compose-box').classList.remove('active');
+  document.getElementById('who-to-follow').style.display = 'none';
+  loadFeed();
+}
+
+// ── Compose ───────────────────────────────────────────────────────────────────
+async function postTweet() {
+  if (!currentUser) { showAuthModal('login'); return; }
+  const text = document.getElementById('tweet-input').value.trim();
+  if (!text) return;
+  if (text.length > 280) { notify('Tweet too long!'); return; }
+  try {
+    await api('POST', '/tweets', {user_id: currentUser.id, text});
+    document.getElementById('tweet-input').value = '';
+    updateCharCount();
+    notify('Tweet posted!');
+    loadFeed();
+    loadTrending();
+  } catch(e) { notify('Error: ' + e.message); }
+}
+
+// ── Feed ──────────────────────────────────────────────────────────────────────
+async function loadFeed() {
+  const el = document.getElementById('feed-content');
+  el.innerHTML = '<div class="loading">Loading…</div>';
+  try {
+    let tweets = [];
+    if (currentUser && currentTab === 'following') {
+      try { tweets = await api('GET', `/timeline/${currentUser.id}`); } catch(e) {}
+    }
+    if (!tweets || !tweets.length) {
+      // Fallback: get public posts (most recent across all users)
+      try { tweets = await api('GET', `/tweets`).then(r => Array.isArray(r) ? r : []); } catch(e) {}
+    }
+    allTweets = tweets || [];
+    if (!allTweets.length) {
+      el.innerHTML = `<div class="empty-state">
+        <div class="icon">🐦</div>
+        <h3>Nothing here yet</h3>
+        <p>${currentUser ? "Follow people to see their tweets, or post your first tweet!" : "Log in to see tweets and join the conversation."}</p>
+      </div>`;
+      return;
+    }
+    el.innerHTML = allTweets.map(t => renderTweet(t)).join('');
+  } catch(e) {
+    el.innerHTML = `<div class="empty-state"><p>Error loading feed: ${e.message}</p></div>`;
+  }
+}
+
+function renderTweet(t) {
+  const initials = (t.display_name || t.username || 'T')[0].toUpperCase();
+  const isLiked = t._liked || false;
+  const isRetweeted = t._retweeted || false;
+  const rtNote = t.retweeted_by ? `<div class="retweet-indicator">🔁 ${t.retweeted_by} Retweeted</div>` : '';
+  return `<div class="tweet-card" id="tweet-${t.id}">
+    <div class="tweet-avatar">${initials}</div>
+    <div class="tweet-body">
+      ${rtNote}
+      <div class="tweet-header">
+        <span class="tweet-display-name">${t.display_name || t.username}</span>
+        <span class="tweet-username">@${t.username}</span>
+        <span class="tweet-time">${timeAgo(t.created_at)}</span>
+      </div>
+      <div class="tweet-text">${formatText(t.text)}</div>
+      <div class="tweet-actions">
+        <button class="tweet-action-btn${isLiked?' liked':''}" onclick="toggleLike('${t.id}',this)">♥ <span id="lc-${t.id}">${t.likes_count||0}</span></button>
+        <button class="tweet-action-btn${isRetweeted?' retweeted':''}" onclick="doRetweet('${t.id}',this)">🔁 <span id="rc-${t.id}">${t.retweet_count||0}</span></button>
+      </div>
+    </div>
+  </div>`;
+}
+
+async function toggleLike(tweetId, btn) {
+  if (!currentUser) { showAuthModal('login'); return; }
+  try {
+    if (btn.classList.contains('liked')) {
+      await api('DELETE', `/tweets/${tweetId}/likes?user_id=${currentUser.id}`);
+      btn.classList.remove('liked');
+      const el = document.getElementById(`lc-${tweetId}`);
+      if (el) el.textContent = Math.max(0, parseInt(el.textContent) - 1);
+    } else {
+      await api('POST', `/tweets/${tweetId}/likes`, {user_id: currentUser.id});
+      btn.classList.add('liked');
+      const el = document.getElementById(`lc-${tweetId}`);
+      if (el) el.textContent = parseInt(el.textContent) + 1;
+    }
+  } catch(e) { notify('Error: ' + e.message); }
+}
+
+async function doRetweet(tweetId, btn) {
+  if (!currentUser) { showAuthModal('login'); return; }
+  try {
+    await api('POST', `/tweets/${tweetId}/retweets`, {user_id: currentUser.id});
+    btn.classList.add('retweeted');
+    const el = document.getElementById(`rc-${tweetId}`);
+    if (el) el.textContent = parseInt(el.textContent) + 1;
+    notify('Retweeted!');
+  } catch(e) { notify('Error: ' + e.message); }
+}
+
+// ── Trending ─────────────────────────────────────────────────────────────────
+async function loadTrending() {
+  try {
+    const trends = await api('GET', '/trending');
+    const list = Array.isArray(trends) ? trends : (trends.trending || []);
+    const el = document.getElementById('trending-list');
+    if (!list.length) {
+      el.innerHTML = '<div style="color:#71767b;font-size:14px">No trending topics yet.</div>';
+      return;
+    }
+    el.innerHTML = list.slice(0, 5).map(t => `
+      <div class="trend-item">
+        <div class="trend-label">Trending</div>
+        <div class="trend-hashtag">${t.hashtag || t.tag || t.name}</div>
+        <div class="trend-count">${t.count || t.tweet_count || 0} Tweets</div>
+      </div>`).join('');
+  } catch(e) {
+    document.getElementById('trending-list').innerHTML = '<div style="color:#71767b;font-size:14px">No trends yet.</div>';
+  }
+}
+
+// ── Follow suggestions ────────────────────────────────────────────────────────
+async function loadFollowSuggestions() {
+  if (!currentUser) return;
+  try {
+    const timeline = await api('GET', `/timeline/${currentUser.id}`).catch(() => []);
+    const known = new Set((timeline || []).map(t => t.user_id));
+    known.add(currentUser.id);
+    // We can only suggest if we have some way to list users
+    // Fall back to showing nothing if no user list endpoint
+    document.getElementById('who-to-follow').style.display = 'none';
+  } catch(e) {}
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('active'); });
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.active').forEach(el => el.classList.remove('active'));
+});
+
+loadFeed();
+loadTrending();
+</script>
+</body>
+</html>
